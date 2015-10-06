@@ -17,7 +17,6 @@ double a;
 double b;
 int n;
 double approx;
-double total;
 pthread_mutex_t mutex;
 
 // Actual areas under the f(x) = x^2 curves, for you to check your
@@ -39,11 +38,7 @@ void* calculate_trap(void* rank){
 	local_a = a + my_rank*local_n*h;
 	local_b = local_a + local_n*h;
 	
-	my_int = calculate_local_trap(local_a, local_b, local_n, h);
-	phtread_mutex_lock(&mutex);
-	total += my_int;
-	pthread_mutex_unlock(&mutex);
-	
+	calculate_local_trap(local_a, local_b, local_n, h);	
 	return NULL;
 }
 
@@ -55,7 +50,10 @@ void calculate_local_trap(double local_a, double local_b, int local_n, double h)
   approx = ( f(a) + f(b) ) / 2.0;
   for(int i = 1; i < local_n-1; i++) {
     x_i = local_a + i*h;
-    approx += f(x_i);
+	phtread_mutex_lock(&mutex);
+	approx += f(x_i);
+	pthread_mutex_unlock(&mutex);
+    
   }
   approx = h*approx;
 }
