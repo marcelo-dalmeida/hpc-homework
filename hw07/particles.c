@@ -56,6 +56,7 @@ main(int argc, char** argv){
   struct Particle *remotes;// Array of foreign particles
   char *file_name;// File name
   MPI_Status status;// Return status for receive
+	MPI_Request request;
   int j, rounds, initiator, sender;
   double start_time, end_time;
 
@@ -155,30 +156,32 @@ main(int argc, char** argv){
   // YOUR CODE GOES HERE (ring algorithm)
 	
 	for(j = 0; j < (p-1)/2; j++){
-			MPI_Send(locals,
+			MPI_Isend(locals,
 						number * (sizeof (struct Particle)) / sizeof(float),
 						MPI_FLOAT,
 						(myRank + 1 + p) % p,
 						tag,
-						MPI_COMM_WORLD);
+						MPI_COMM_WORLD,
+						&request);
 						
-			MPI_Recv(remotes,
+			MPI_Irecv(remotes,
 								number * (sizeof (struct Particle)) / sizeof(float),
 								MPI_FLOAT,
 								(myRank - 1 + p) % p,
 								tag,
 								MPI_COMM_WORLD,
-								&status);
+								&request);
 								
 			compute_interaction(locals, remotes, number);
 	}
 	
-	MPI_Send(locals,
+	MPI_Isend(locals,
 					number * (sizeof (struct Particle)) / sizeof(float),
 					MPI_FLOAT,
 					(myRank - (p-1)/2 + p) % p,
 					tag,
-					MPI_COMM_WORLD);
+					MPI_COMM_WORLD,
+					&request);
 	
 	
 	merge(locals, remotes, number);
