@@ -95,7 +95,25 @@ main(int argc, char** argv){
       // YOUR CODE GOES HERE (reading particles from file)
 			read_file(globals,n,argv[2]);
 			
+			MPI_Scatter(globals, 
+									number * (sizeof (struct Particle)) / sizeof(float),
+									MPI_FLOAT,
+									locals,
+									number * (sizeof (struct Particle)) / sizeof(float),
+									MPI_FLOAT,
+									0,
+									MPI_COMM_WORLD);
     }
+		else{
+			MPI_Scatter(globals, 
+									number * (sizeof (struct Particle)) / sizeof(float),
+									MPI_FLOAT,
+									locals,
+									number * (sizeof (struct Particle)) / sizeof(float),
+									MPI_FLOAT,
+									0,
+									MPI_COMM_WORLD);
+		}
     
     // To send/recv (or scatter/gather) you will need to learn how to
     // transfer structs of floats, treat it as a contiguous block of
@@ -135,6 +153,37 @@ main(int argc, char** argv){
   }
   
   // YOUR CODE GOES HERE (ring algorithm)
+	
+	for(i = 0; i < (p-1)/2; i++){
+			MPI_Send(locals,
+						number * (sizeof (struct Particle)) / sizeof(float),
+						MPI_FLOAT,
+						next_rank,
+						tag,
+						MPI_COMM_WORLD);
+						
+			MPI_Recv(remotes,
+								number * (sizeof (struct Particle)) / sizeof(float),
+								MPI_FLOAT,
+								previous_rank,
+								tag,
+								MPI_COMM_WORLD,
+								&status);
+								
+			compute_interaction(locals, remote, number);
+	}
+	
+	MPI_Send(locals,
+					number * (sizeof (struct Particle)) / sizeof(float),
+					MPI_FLOAT,
+					(my_rank - (p-1)/2 + p) % p,
+					tag,
+					MPI_COMM_WORLD);
+	
+	
+	merge(locals, remotes, number);
+	compute_self_interaction(locals, number);
+	
 
   // stopping timer
   if(myRank == 0){
@@ -147,6 +196,15 @@ main(int argc, char** argv){
     
     // YOUR CODE GOES HERE (collect particles at rank 0)
 
+		MPI_Gather(locals, 
+							number * (sizeof (struct Particle)) / sizeof(float),
+							MPI_FLOAT,
+							globals,
+							number * (sizeof (struct Particle)) / sizeof(float),
+							MPI_FLOAT,
+							0,
+							MPI_COMM_WORLD);
+		
     if(myRank == 0) {
       print_particles(globals,n);
     }
