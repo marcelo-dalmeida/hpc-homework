@@ -154,7 +154,7 @@ main(int argc, char** argv){
   
   // YOUR CODE GOES HERE (ring algorithm)
 	
-	for(int i = 0; i < (p-1)/2; i++){
+	for(j = 0; j < (p-1)/2; j++){
 			MPI_Send(locals,
 						number * (sizeof (struct Particle)) / sizeof(float),
 						MPI_FLOAT,
@@ -170,7 +170,7 @@ main(int argc, char** argv){
 								MPI_COMM_WORLD,
 								&status);
 								
-			compute_interaction(locals, remote, number);
+			compute_interaction(locals, remotes, number);
 	}
 	
 	MPI_Send(locals,
