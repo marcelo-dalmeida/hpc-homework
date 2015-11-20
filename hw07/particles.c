@@ -154,18 +154,18 @@ main(int argc, char** argv){
   
   // YOUR CODE GOES HERE (ring algorithm)
 	
-	for(i = 0; i < (p-1)/2; i++){
+	for(int i = 0; i < (p-1)/2; i++){
 			MPI_Send(locals,
 						number * (sizeof (struct Particle)) / sizeof(float),
 						MPI_FLOAT,
-						next_rank,
+						(myRank + 1 + p) % p,
 						tag,
 						MPI_COMM_WORLD);
 						
 			MPI_Recv(remotes,
 								number * (sizeof (struct Particle)) / sizeof(float),
 								MPI_FLOAT,
-								previous_rank,
+								(myRank - 1 + p) % p,
 								tag,
 								MPI_COMM_WORLD,
 								&status);
@@ -176,7 +176,7 @@ main(int argc, char** argv){
 	MPI_Send(locals,
 					number * (sizeof (struct Particle)) / sizeof(float),
 					MPI_FLOAT,
-					(my_rank - (p-1)/2 + p) % p,
+					(myRank - (p-1)/2 + p) % p,
 					tag,
 					MPI_COMM_WORLD);
 	
